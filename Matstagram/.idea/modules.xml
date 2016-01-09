@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Matstagram.iml" filepath="$PROJECT_DIR$/Matstagram.iml" />
+      <module fileurl="file://$PROJECT_DIR$/androidinstagramoauth/androidinstagramoauth.iml" filepath="$PROJECT_DIR$/androidinstagramoauth/androidinstagramoauth.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
