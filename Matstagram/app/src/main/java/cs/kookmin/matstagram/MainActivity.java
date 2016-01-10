@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +27,8 @@ public class MainActivity extends Activity {
     private InstagramApp mApp;
     private Button btnConnect;
     private TextView tvSummary;
+    private EditText etSearch;
+    private Button btnSearch;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -76,6 +79,25 @@ public class MainActivity extends Activity {
             tvSummary.setText("Connected as " + mApp.getUserName());
             btnConnect.setText("Disconnect");
         }
+
+        //검색 시도 시 다른 activity로 전환
+        etSearch = (EditText) findViewById(R.id.etSearch);
+        btnSearch = (Button) findViewById(R.id.btnSearch);
+
+        etSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+                startActivity(intent, null);
+            }
+        });
+        btnSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+                startActivity(intent, null);
+            }
+        });
 
     }
 
