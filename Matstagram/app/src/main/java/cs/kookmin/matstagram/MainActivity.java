@@ -24,7 +24,7 @@ import static cs.kookmin.matstagram.instagram.InstagramData.*;
 
 public class MainActivity extends Activity {
 
-    private InstagramApp mApp;
+    public InstagramApp mApp;
     private Button btnConnect;
     private TextView tvSummary;
     private EditText etSearch;
@@ -87,15 +87,23 @@ public class MainActivity extends Activity {
         etSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
-                startActivity(intent, null);
+                if(mApp.hasAccessToken()) {
+                    Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+                    startActivity(intent, null);
+                }
+                else
+                    Toast.makeText(MainActivity.this,"Please Connect First", Toast.LENGTH_SHORT);
             }
         });
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
-                startActivity(intent, null);
+                if(mApp.hasAccessToken()) {
+                    Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+                    startActivity(intent, null);
+                }
+                else
+                    Toast.makeText(MainActivity.this,"Please Connect First", Toast.LENGTH_SHORT);
             }
         });
 

@@ -10,11 +10,13 @@
         android:layout_height="wrap_content">
 
         <EditText
+            android:id="@+id/etSearch2"
             android:layout_width="270dp"
             android:layout_height="wrap_content"
             android:hint="ex)국민대 맛집, 장지역 치킨"/>
 
         <Button
+            android:id="@+id/btnSearch2"
             android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:textSize="10dp"

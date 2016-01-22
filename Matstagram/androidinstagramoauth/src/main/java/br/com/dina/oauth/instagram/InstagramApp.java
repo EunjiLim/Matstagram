@@ -7,7 +7,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -56,6 +65,8 @@ public class InstagramApp {
 	private static final String API_URL = "https://api.instagram.com/v1";
 
 	private static final String TAG = "InstagramAPI";
+
+	private TreeMap<String, Integer> treeMap = new TreeMap<>();
 
 	public InstagramApp(Context context, String clientId, String clientSecret,
 			String callbackUrl) {
@@ -137,7 +148,7 @@ public class InstagramApp {
 	}
 	
 	private void fetchUserName() {
-		mProgress.setMessage("Finalizing ...");
+		mProgress.setMessage("Fetching user name ...");
 		
 		new Thread() {
 			@Override
@@ -160,18 +171,104 @@ public class InstagramApp {
 					String bio = jsonObj.getJSONObject("data").getString("bio");
 					Log.i(TAG, "Got name: " + name + ", bio [" + bio + "]");
 				} catch (Exception ex) {
-					Log.i(TAG, "6");
 					what = WHAT_ERROR;
-					Log.i(TAG, "7");
 					ex.printStackTrace();
-					Log.i(TAG, "8");
+
 				}
-				Log.i(TAG, "9");
 				mHandler.sendMessage(mHandler.obtainMessage(what, 2, 0));
-				Log.i(TAG, "10");
 			}
 		}.start();	
 		
+	}
+
+	public void getUserRecent(){
+		treeMap = new TreeMap<>(); //Initialization
+		Thread thread = new Thread() {
+			@Override
+			public void run() {
+				Log.i(TAG, "/users/self/media/recent");
+				int what = WHAT_FINALIZE;
+				try {
+					URL url = new URL(API_URL + "/users/self/media/recent/?access_token=" + mAccessToken);
+
+					Log.i(TAG, "Opening URL " + url.toString());
+					HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+					urlConnection.setRequestMethod("GET");
+					int responseCode = urlConnection.getResponseCode();
+					Log.i(TAG, String.valueOf(responseCode));
+					Log.i(TAG, urlConnection.getInputStream().toString());
+					String response = streamToString(urlConnection.getInputStream());
+					JSONObject jsonObj = (JSONObject) new JSONTokener(response).nextValue();
+					JSONArray jsonArr = (JSONArray) jsonObj.get("data");
+					for(int i=0 ; i < jsonArr.length() ; i++){
+						JSONObject jsonObj2 = jsonArr.getJSONObject(i);
+						JSONArray jsonArr2 = jsonObj2.getJSONArray("tags");
+						for(int j=0 ; j < jsonArr2.length() ; j++){
+							String hashTag = jsonArr2.get(j).toString();
+							Log.i(TAG, hashTag);
+							if(treeMap.containsKey(hashTag)) {
+								treeMap.put(hashTag, treeMap.get(hashTag) + 1);
+								Log.i(TAG, Integer.toString(treeMap.get(hashTag)));
+							}
+							else {
+								treeMap.put(hashTag, 1);
+								Log.i(TAG,Integer.toString(treeMap.get(hashTag)));
+							}
+						}
+					}
+				} catch (Exception ex) {
+					what = WHAT_ERROR;
+					ex.printStackTrace();
+				}
+				mHandler.sendMessage(mHandler.obtainMessage(what, 2, 0));
+			}
+		};
+		thread.start();
+		try {
+			thread.join(); //for synchronization
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		Iterator itr = sortByValue(treeMap).iterator();
+		while(itr.hasNext()){
+			String temp = (String) itr.next();
+			Log.i(TAG, temp + " = " + treeMap.get(temp));
+		}
+	}
+
+
+	private void getSearchResult(final String hashtag){
+		mProgress.setMessage("Searching ...");
+
+		new Thread() {
+			@Override
+			public void run() {
+				Log.i(TAG, "Searching by " + hashtag );
+				int what = WHAT_FINALIZE;
+				try {
+					URL url = new URL(API_URL + "/tags/"+ hashtag + "media/recent?count=50&access_token=" + mAccessToken);
+
+					Log.i(TAG, "Opening URL " + url.toString());
+					HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+					urlConnection.setRequestMethod("GET");
+					int responseCode = urlConnection.getResponseCode();
+					Log.i(TAG, String.valueOf(responseCode));
+					Log.i(TAG, urlConnection.getInputStream().toString());
+					String response = streamToString(urlConnection.getInputStream());
+					JSONObject jsonObj = (JSONObject) new JSONTokener(response).nextValue();
+					JSONArray jsonArr = (JSONArray) jsonObj.get("data");
+					//String name = jsonObj.getJSONObject("data").getString("full_name");
+					//String bio = jsonObj.getJSONObject("data").getString("bio");
+					//Log.i(TAG, "Got name: " + name + ", bio [" + bio + "]");
+				} catch (Exception ex) {
+					what = WHAT_ERROR;
+					ex.printStackTrace();
+
+				}
+				mHandler.sendMessage(mHandler.obtainMessage(what, 2, 0));
+			}
+		}.start();
 	}
 
 
@@ -217,7 +314,10 @@ public class InstagramApp {
 	public String getName() {
 		return mSession.getName();
 	}
-	
+
+	public TreeMap<String, Integer> getTreeMap() {
+		return treeMap;
+	}
 	public void authorize() {
 		//Intent webAuthIntent = new Intent(Intent.ACTION_VIEW);
         //webAuthIntent.setData(Uri.parse(AUTH_URL));
@@ -262,5 +362,23 @@ public class InstagramApp {
 		public abstract void onSuccess();
 
 		public abstract void onFail(String error);
+	}
+
+	List sortByValue(final Map map){
+		List<String> list = new ArrayList();
+		list.addAll(map.keySet());
+
+		Collections.sort(list, new Comparator() {
+
+			public int compare(Object o1, Object o2) {
+				Object v1 = map.get(o1);
+				Object v2 = map.get(o2);
+
+				return ((Comparable) v1).compareTo(v2);
+			}
+
+		});
+		Collections.reverse(list); // 주석시 오름차순
+		return list;
 	}
 }
